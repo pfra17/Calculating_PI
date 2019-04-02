@@ -12,22 +12,22 @@
 #include "clksys_driver.h"
 #include "sleepConfig.h"
 #include "port_driver.h"
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "event_groups.h"
 #include "stack_macros.h"
-
 #include "mem_check.h"
-
 #include "init.h"
 #include "utils.h"
 #include "errorHandler.h"
 #include "NHD0420Driver.h"
-
 #include "ButtonHandler.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#define CALC_DONE_EVENT 1<<0
 
 extern void vApplicationIdleHook( void );
 void vInterface(void *pvParameters);
@@ -42,6 +42,8 @@ TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
 TaskHandle_t ledTask;
 
+//calcEventGroup = xEventGroupCreate();
+EventGroupHandle_t calcEventGroup;
 void vApplicationIdleHook( void )
 {	
 	
@@ -68,9 +70,9 @@ int main(void)
 	return 0;
 }
 
-/*void vLedBlink(void *pvParameters) {
+/* void vLedBlink(void *pvParameters) {
 	(void) pvParameters;
-	PORTF.DIRSET = PIN0_bm; /*LED1*/
+	PORTF.DIRSET = PIN0_bm; /*LED1
 	PORTF.OUT = 0x01;
 	for(;;) {
 // 		uint32_t stack = get_mem_unused();
@@ -91,12 +93,22 @@ void vInterface(void *pvParameters) {
 	initButtons();
 	vTaskDelay(500);
 	vDisplayClear();
-	vDisplayWriteStringAtPos(0, 0, "Calculating Pi4")
+	vDisplayWriteStringAtPos(0, 0, "Calculating Pi4 v1.0");
+	vDisplayWriteStringAtPos(1, 0, "Iterations: %d", i);
+	vDisplayWriteStringAtPos(2, 0, "Pi Value:");
+	for (;;) {
+		
+	}
+
 	
 }
 
 double vCalculation(void *pvParameters) {
-	for (i=0; i<=1e5; i++) {
-		dPi4 = dPi4 - (1/3+i*4) + (1/5+i*4);
+	for (;;) {	
+		for (i=0; i<=1e6; i++) {
+			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
+			dPi4 *= 4; //To make Pi out of Pi/4
+			
+		}
 	}
 }
