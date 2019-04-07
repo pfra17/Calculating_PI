@@ -35,14 +35,15 @@ extern void vApplicationIdleHook( void );
 void vInterface(void *pvParameters);
 void vCalculation(void *pvParameters);
 
-double dPi4 = 1;
+double dPi4 = 1.0;
 double i=0;
 char i_str[20];
 char dPi4_str[20];
+double test = 1.384745;
+char test_str[];
 
 TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
-TaskHandle_t ledTask;
 
 EventGroupHandle_t calcEventGroup;
 void vApplicationIdleHook( void )
@@ -57,28 +58,30 @@ int main(void)
 	calcEventGroup = xEventGroupCreate();
 	vInitClock();
 	vInitDisplay();
+	initButtons();
 	
 	xTaskCreate(vInterface, (const char *) "InterfaceTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	xTaskCreate(vCalculation, (const char *) "CalculationTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	
-	
-
 	vDisplayClear();
-	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.2");
+	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.3");
 	vTaskStartScheduler();
 	return 0;
 }
 	
 void vInterface(void *pvParameters) {
 	for(;;) {	
-		initButtons();
 		vTaskDelay(500);
-		if (CALC_DONE_EVENT == 0x01) {
+		if (CALC_DONE_EVENT == 0x01) 
+		{
 			vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str); //muss mit sprintf gelöst werden
 			vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
+			dtostrf(i, 1, 0, i_str); //Transforming double variable i to a string to be able to print the value correclty on the display.
+			dtostrf(dPi4, 1, 5, dPi4_str);			
 			vDisplayWriteStringAtPos(3, 0, "%s", dPi4_str);
-			dtostrf(i, 1, 0, i_str); //Transforming double variable pi to a string to be able to print the value correclty on the display.
-			dtostrf(dPi4*4, 1, 5, dPi4_str);
+
+			//dtostrf(test, 1, 0, test_str);
+			//vDisplayWriteStringAtPos(4, 0, "%s", test_str);
 		}
 		xEventGroupClearBits(calcEventGroup, CALC_DONE_EVENT);
 	}
@@ -88,18 +91,11 @@ void vCalculation(void *pvParameters) {
 	for (;;) {	
 		for (i=0; i<=1e6; i++) {
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
-			dPi4 *= 4; //To make Pi out of Pi/4
-			xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);
+			xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);		
 			if (i==1e6)
 			{
 				xEventGroupSetBits(calcEventGroup, ITERATIONS_DONE_EVENT);
-			}
-			if (ITERATIONS_DONE_EVENT == true)
-			{
-				for(;;)
-				{
-					
-				}
+				vTaskSuspend(CalculationTask);
 			}
 		}
 	}
