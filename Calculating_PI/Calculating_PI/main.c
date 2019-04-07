@@ -26,16 +26,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CALC_DONE_EVENT 1<<0
+#define ITERATIONS_DONE_EVENT 1<<1
 
 extern void vApplicationIdleHook( void );
 void vInterface(void *pvParameters);
 void vCalculation(void *pvParameters);
 
 double dPi4 = 1;
-uint64_t i=0;
-char str[80];
+double i=0;
+char i_str[20];
+char dPi4_str[20];
 
 TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
@@ -46,9 +49,11 @@ void vApplicationIdleHook( void )
 {	
 	
 }
-
 int main(void)
 {
+	PORTE.DIR = 0x0f;
+	PORTF.DIR = 0x0f;
+		
 	calcEventGroup = xEventGroupCreate();
 	vInitClock();
 	vInitDisplay();
@@ -59,7 +64,7 @@ int main(void)
 	
 
 	vDisplayClear();
-	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.1");
+	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.2");
 	vTaskStartScheduler();
 	return 0;
 }
@@ -68,9 +73,12 @@ void vInterface(void *pvParameters) {
 	for(;;) {	
 		initButtons();
 		vTaskDelay(500);
-		if (CALC_DONE_EVENT) {
-			vDisplayWriteStringAtPos(1, 0, "Iterations: %d", i);
-			vDisplayWriteStringAtPos(2, 0, "Pi Value:");
+		if (CALC_DONE_EVENT == 0x01) {
+			vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str); //muss mit sprintf gelöst werden
+			vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
+			vDisplayWriteStringAtPos(3, 0, "%s", dPi4_str);
+			dtostrf(i, 1, 0, i_str); //Transforming double variable pi to a string to be able to print the value correclty on the display.
+			dtostrf(dPi4*4, 1, 5, dPi4_str);
 		}
 		xEventGroupClearBits(calcEventGroup, CALC_DONE_EVENT);
 	}
@@ -82,6 +90,17 @@ void vCalculation(void *pvParameters) {
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
 			dPi4 *= 4; //To make Pi out of Pi/4
 			xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);
+			if (i==1e6)
+			{
+				xEventGroupSetBits(calcEventGroup, ITERATIONS_DONE_EVENT);
+			}
+			if (ITERATIONS_DONE_EVENT == true)
+			{
+				for(;;)
+				{
+					
+				}
+			}
 		}
 	}
 }
