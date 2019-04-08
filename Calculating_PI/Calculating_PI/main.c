@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define CALC_DONE_EVENT 1<<0
 #define ITERATIONS_DONE_EVENT 1<<1
@@ -35,12 +36,10 @@ extern void vApplicationIdleHook( void );
 void vInterface(void *pvParameters);
 void vCalculation(void *pvParameters);
 
-double dPi4 = 1.0;
+long double dPi4 = 1.0;
 double i=0;
 char i_str[20];
 char dPi4_str[20];
-double test = 1.384745;
-char test_str[];
 
 TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
@@ -64,34 +63,41 @@ int main(void)
 	xTaskCreate(vCalculation, (const char *) "CalculationTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	
 	vDisplayClear();
-	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.5");
+	vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.6");
 	vTaskStartScheduler();
 	return 0;
 }
 	
-void vInterface(void *pvParameters) {
-	for(;;) {	
+void vInterface(void *pvParameters) 
+{
+	for(;;)
+	 {	
 		vTaskDelay(500);
 		if (CALC_DONE_EVENT == 0x01) 
 		{
-			dtostrf(i, 1, 0, i_str); //Transforming double variable i to a string to be able to print the value correclty on the display.
-			vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str); //muss mit sprintf gelöst werden
+			dtostrf(i, 1, 0, i_str);									//Transforming double variable i to a string to be able to print the value correclty on the display.
+			vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str);	//muss mit sprintf gelöst werden
 			vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
-			dtostrf(dPi4*4, 1, 10, dPi4_str);			
+			dtostrf(dPi4*4, 1, 17, dPi4_str);							//Transform double variable to a string
 			vDisplayWriteStringAtPos(3, 0, "%s", dPi4_str);
-
-			//dtostrf(test, 1, 0, test_str);
-			//vDisplayWriteStringAtPos(4, 0, "%s", test_str);
 		}
 		xEventGroupClearBits(calcEventGroup, CALC_DONE_EVENT);
 	}
 }
 
-void vCalculation(void *pvParameters) {
-	for (;;) {	
-		for (i=0; i<=1e7; i++) {
+void vCalculation(void *pvParameters) 
+{
+	for (;;)
+	{	
+		for (i=0; i<=1e7; i++) 
+		{
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
 			xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);		
+			updateButtons();
+			if (getButtonPress(BUTTON1) == LONG_PRESSED)
+			{
+				vTaskSuspend(CalculationTask);
+			}			
 			if (i==1e7)
 			{
 				xEventGroupSetBits(calcEventGroup, ITERATIONS_DONE_EVENT);
