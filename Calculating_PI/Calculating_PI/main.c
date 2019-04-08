@@ -6,6 +6,7 @@
  */ 
 
 //#include <avr/io.h>
+//TEST
 #include "avr_compiler.h"
 #include "pmic_driver.h"
 #include "TC_driver.h"
