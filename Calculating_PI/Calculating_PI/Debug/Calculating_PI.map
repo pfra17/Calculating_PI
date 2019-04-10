@@ -81,10 +81,10 @@ Allocating common symbols
 Common symbol       size              file
 
 displayLineQueue    0x2               NHD0420Driver.o
-calcEventGroup      0x2               main.o
 egDisplayTiming     0x2               NHD0420Driver.o
 intTaskSwitchPending
                     0x1               FreeRTOS/port.o
+egMyEventGroup      0x2               main.o
 dPi4_str            0x14              main.o
 ButtonHandlerTask   0x2               main.o
 b1Status            0x1               ButtonHandler.o
@@ -1551,7 +1551,7 @@ END GROUP
  COMMON         0x00802d06        0x1 FreeRTOS/port.o
                 0x00802d06                intTaskSwitchPending
  COMMON         0x00802d07       0x30 main.o
-                0x00802d07                calcEventGroup
+                0x00802d07                egMyEventGroup
                 0x00802d09                dPi4_str
                 0x00802d1d                ButtonHandlerTask
                 0x00802d1f                i_str

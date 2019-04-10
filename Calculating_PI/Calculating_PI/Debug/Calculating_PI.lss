@@ -8550,7 +8550,7 @@ void vInitClock(void)
 TaskHandle_t CalculationTask;
 TaskHandle_t ButtonHandlerTask;
 
-EventGroupHandle_t calcEventGroup;
+EventGroupHandle_t egMyEventGroup;
 void vApplicationIdleHook( void )
 {	
     4228:	cf 93       	push	r28
@@ -8574,11 +8574,10 @@ int main(void)
     4240:	df 93       	push	r29
     4242:	cd b7       	in	r28, 0x3d	; 61
     4244:	de b7       	in	r29, 0x3e	; 62
-	calcEventGroup = xEventGroupCreate();
+	egMyEventGroup = xEventGroupCreate();	
     4246:	0e 94 5a 04 	call	0x8b4	; 0x8b4 <xEventGroupCreate>
-    424a:	80 93 07 2d 	sts	0x2D07, r24	; 0x802d07 <calcEventGroup>
-    424e:	90 93 08 2d 	sts	0x2D08, r25	; 0x802d08 <calcEventGroup+0x1>
-	
+    424a:	80 93 07 2d 	sts	0x2D07, r24	; 0x802d07 <egMyEventGroup>
+    424e:	90 93 08 2d 	sts	0x2D08, r25	; 0x802d08 <egMyEventGroup+0x1>
 	xTaskCreate(vInterface, (const char *) "InterfaceTask", configMINIMAL_STACK_SIZE, NULL, 1, &InterfaceTask);
     4252:	0f 2e       	mov	r0, r31
     4254:	f3 e3       	ldi	r31, 0x33	; 51
@@ -8987,7 +8986,6 @@ void vCalculation(void *pvParameters)
     458c:	90 93 01 20 	sts	0x2001, r25	; 0x802001 <__data_start+0x1>
     4590:	a0 93 02 20 	sts	0x2002, r26	; 0x802002 <__data_start+0x2>
     4594:	b0 93 03 20 	sts	0x2003, r27	; 0x802003 <__data_start+0x3>
-			//xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);				
 			if (i==1e7)
     4598:	80 91 d6 2c 	lds	r24, 0x2CD6	; 0x802cd6 <i>
     459c:	90 91 d7 2c 	lds	r25, 0x2CD7	; 0x802cd7 <i+0x1>

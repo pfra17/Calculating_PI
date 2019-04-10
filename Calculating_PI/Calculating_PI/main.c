@@ -31,8 +31,9 @@
 #include <string.h>
 #include <math.h>
 
-#define CALC_DONE_EVENT 1<<0
-#define ITERATIONS_DONE_EVENT 1<<1
+#define START_CALC_EVENT 1<<0
+#define CALC_DONE_EVENT 1<<1
+#define ITERATIONS_DONE_EVENT 1<<2
 
 extern void vApplicationIdleHook( void );
 void vInterface(void *pvParameters);
@@ -48,15 +49,14 @@ TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
 TaskHandle_t ButtonHandlerTask;
 
-EventGroupHandle_t calcEventGroup;
+EventGroupHandle_t egMyEventGroup;
 void vApplicationIdleHook( void )
 {	
 	
 }
 int main(void)
 {
-	calcEventGroup = xEventGroupCreate();
-	
+	egMyEventGroup = xEventGroupCreate();	
 	xTaskCreate(vInterface, (const char *) "InterfaceTask", configMINIMAL_STACK_SIZE, NULL, 1, &InterfaceTask);
 	xTaskCreate(vCalculation, (const char *) "CalculationTask", configMINIMAL_STACK_SIZE, NULL, 1, &CalculationTask);
 	xTaskCreate(vButtonHandler, (const char *) "ButtonHandlerTask", configMINIMAL_STACK_SIZE, NULL, 1, &ButtonHandlerTask);
@@ -114,7 +114,6 @@ void vCalculation(void *pvParameters)
 		for (i=0; i<=1e7; i++) 
 		{
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
-			//xEventGroupSetBits(calcEventGroup, CALC_DONE_EVENT);				
 			if (i==1e7)
 			{
 				vTaskSuspend(CalculationTask);
