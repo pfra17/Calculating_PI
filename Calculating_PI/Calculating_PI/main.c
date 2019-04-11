@@ -70,10 +70,12 @@ int main(void)
 	
 void vInterface(void *pvParameters) 
 {
+
+	
 	for(;;)
 	 {	
 		vTaskDelay(500 / portTICK_RATE_MS);	
-		vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.7");
+		vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.8");
 		dtostrf(i, 1, 0, i_str);									//Transforming double variable i to a string to be able to print the value correclty on the display.
 		vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str);	//muss mit sprintf gelöst werden
 		vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
@@ -91,13 +93,17 @@ void vButtonHandler(void *pvParameters)
 		updateButtons();
 		if (getButtonPress(BUTTON1)==LONG_PRESSED)
 		{
-			vTaskSuspend(CalculationTask);
+			xEventGroupSetBits(egMyEventGroup, START_CALC_EVENT);
 		}
 		else if (getButtonPress(BUTTON2)==LONG_PRESSED)
 		{
-			vTaskResume(CalculationTask);
+			vTaskSuspend(CalculationTask);
 		}
 		else if (getButtonPress(BUTTON3)==LONG_PRESSED)
+		{
+			vTaskResume(CalculationTask);
+		}
+		else if (getButtonPress(BUTTON4)==LONG_PRESSED)
 		{
 			vTaskSuspend(CalculationTask);
 			vDisplayClear();
@@ -110,7 +116,7 @@ void vButtonHandler(void *pvParameters)
 void vCalculation(void *pvParameters) 
 {
 	for (;;)
-	{	
+	{	xEventGroupWaitBits(egMyEventGroup, START_CALC_EVENT, pdFALSE, pdFALSE, portMAX_DELAY);
 		for (i=0; i<=1e7; i++) 
 		{
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
