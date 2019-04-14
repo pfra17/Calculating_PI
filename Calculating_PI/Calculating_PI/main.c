@@ -6,8 +6,6 @@
  */ 
 
 //#include <avr/io.h>
-//TEST
-//test
 #include "avr_compiler.h"
 #include "pmic_driver.h"
 #include "TC_driver.h"
@@ -41,9 +39,11 @@ void vCalculation(void *pvParameters);
 void vButtonHandler(void *pvParameters);
 
 double dPi4 = 1.0;
-double i=0.0;
+double i = 0.0;
 char i_str[20];
 char dPi4_str[20];
+
+double c = 0;
 
 TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
@@ -56,6 +56,9 @@ void vApplicationIdleHook( void )
 }
 int main(void)
 {
+	PORTF.DIR = PIN0_bm;
+	PORTF.OUT = 0b00000000;
+	
 	egMyEventGroup = xEventGroupCreate();	
 	xTaskCreate(vInterface, (const char *) "InterfaceTask", configMINIMAL_STACK_SIZE, NULL, 1, &InterfaceTask);
 	xTaskCreate(vCalculation, (const char *) "CalculationTask", configMINIMAL_STACK_SIZE, NULL, 1, &CalculationTask);
@@ -74,10 +77,10 @@ void vInterface(void *pvParameters)
 	
 	for(;;)
 	 {	
-		vTaskDelay(500 / portTICK_RATE_MS);	
-		vDisplayWriteStringAtPos(0, 0, "Calculating Pi v0.8");
+		vTaskDelay ( 500 / portTICK_RATE_MS);
+		vDisplayWriteStringAtPos(0, 0, "Calculating Pi v1.0b");
 		dtostrf(i, 1, 0, i_str);									//Transforming double variable i to a string to be able to print the value correclty on the display.
-		vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str);	//muss mit sprintf gelöst werden
+		vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str);	
 		vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
 		dtostrf(dPi4*4, 1, 7, dPi4_str);							//Transform double variable to a string
 		vDisplayWriteStringAtPos(2, 11, "%s", dPi4_str);
@@ -104,11 +107,11 @@ void vButtonHandler(void *pvParameters)
 			vTaskResume(CalculationTask);
 		}
 		else if (getButtonPress(BUTTON4)==LONG_PRESSED)
-		{
+		{	
 			vTaskSuspend(CalculationTask);
 			vDisplayClear();
-			i = 0;
-			dPi4 = 1.0;
+			i = 0.0;
+			dPi4 = 1.0;		
 		}
 	}
 }
@@ -116,7 +119,8 @@ void vButtonHandler(void *pvParameters)
 void vCalculation(void *pvParameters) 
 {
 	for (;;)
-	{	xEventGroupWaitBits(egMyEventGroup, START_CALC_EVENT, pdFALSE, pdFALSE, portMAX_DELAY);
+	{	
+		xEventGroupWaitBits(egMyEventGroup, START_CALC_EVENT, pdFALSE, pdFALSE, portMAX_DELAY);
 		for (i=0; i<=1e7; i++) 
 		{
 			dPi4 = dPi4 - 1.0/(3+i*4) + 1.0/(5+i*4);
