@@ -43,8 +43,6 @@ double i = 0.0;
 char i_str[20];
 char dPi4_str[20];
 
-double c = 0;
-
 TaskHandle_t InterfaceTask;
 TaskHandle_t CalculationTask;
 TaskHandle_t ButtonHandlerTask;
@@ -56,8 +54,10 @@ void vApplicationIdleHook( void )
 }
 int main(void)
 {
-	PORTF.DIR = PIN0_bm;
-	PORTF.OUT = 0b00000000;
+	PORTF.DIR = 0x0f;
+	PORTE.DIR = 0x0f;
+	PORTF.OUT = 0x0f;
+	PORTE.OUT = 0x0f;
 	
 	egMyEventGroup = xEventGroupCreate();	
 	xTaskCreate(vInterface, (const char *) "InterfaceTask", configMINIMAL_STACK_SIZE, NULL, 1, &InterfaceTask);
@@ -82,8 +82,11 @@ void vInterface(void *pvParameters)
 		dtostrf(i, 1, 0, i_str);									//Transforming double variable i to a string to be able to print the value correclty on the display.
 		vDisplayWriteStringAtPos(1, 0, "Iterations: %s", i_str);	
 		vDisplayWriteStringAtPos(2, 0, "Pi Value: ");
+		if (dPi4 != 1.0)
+		{
 		dtostrf(dPi4*4, 1, 7, dPi4_str);							//Transform double variable to a string
 		vDisplayWriteStringAtPos(2, 11, "%s", dPi4_str);
+		}
 	}
 }
 
@@ -98,20 +101,21 @@ void vButtonHandler(void *pvParameters)
 		{
 			xEventGroupSetBits(egMyEventGroup, START_CALC_EVENT);
 		}
-		else if (getButtonPress(BUTTON2)==LONG_PRESSED)
+		if (getButtonPress(BUTTON2)==LONG_PRESSED)
 		{
 			vTaskSuspend(CalculationTask);
 		}
-		else if (getButtonPress(BUTTON3)==LONG_PRESSED)
+		if (getButtonPress(BUTTON3)==LONG_PRESSED)
 		{
 			vTaskResume(CalculationTask);
 		}
-		else if (getButtonPress(BUTTON4)==LONG_PRESSED)
+		if (getButtonPress(BUTTON4)==LONG_PRESSED)
 		{	
+			xEventGroupClearBits(egMyEventGroup, START_CALC_EVENT);
 			vTaskSuspend(CalculationTask);
 			vDisplayClear();
 			i = 0.0;
-			dPi4 = 1.0;		
+			dPi4 = 1.0;	
 		}
 	}
 }
